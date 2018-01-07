@@ -126,17 +126,23 @@ function createBonds(options) {
 				tx.gasPrice = tx.gasPrice || p;
 				return tx.gas || api().eth.estimateGas(tx);
 			})
-			.then(g => {
-				progress({estimated: g});
-				tx.gas = tx.gas || g;
-				return api().parity.postTransaction(tx);
-			})
+//			.then(g => {
+//				progress({estimated: g});
+//				tx.gas = tx.gas || g;
+//				return api().parity.postTransaction(tx);
+//			})
+//			.then(signerRequestId => {
+//				progress({requested: signerRequestId});
+//				return api().pollMethod('parity_checkRequest', signerRequestId);
+//			})
 			.then(signerRequestId => {
 				progress({requested: signerRequestId});
-				return api().pollMethod('parity_checkRequest', signerRequestId);
+				return api().eth.sendTransaction(tx);
 			})
 			.then(transactionHash => {
-				if (condition) {
+				if (transactionHash.error) {
+					throw transactionHash.error;
+				} else if (condition) {
 					progress(f({signed: transactionHash, scheduled: condition}));
 					return {signed: transactionHash, scheduled: condition};
 				} else {
